@@ -4,3 +4,4 @@ checks:
     - "unset-cpu-requirements"
     - "unset-memory-requirements"
     - "no-anti-affinity"
+    - "sorted-keys"

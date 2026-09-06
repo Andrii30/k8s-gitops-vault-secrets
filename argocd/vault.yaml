@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://helm.releases.hashicorp.com
+    chart: vault
+    targetRevision: "0.34.1"
+    helm:
+      valuesObject:
+        server:
+          # dev mode: in-memory storage, auto-unsealed, known root token.
+          # ponytail: fine for learning VSO; for anything real use HA +
+          # persistent storage + proper unseal.
+          dev:
+            enabled: true
+            devRootToken: "root"
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }
+        injector:
+          enabled: false      # we use Vault Secrets Operator, not the agent injector
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vault
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
