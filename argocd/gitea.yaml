@@ -22,6 +22,10 @@ spec:
           config:
             database:
               DB_TYPE: sqlite3
+        # Single replica on an RWO PVC: the old pod must release the
+        # volume (and Gitea's leveldb queue lock) before the new one starts.
+        strategy:
+          type: Recreate
         persistence:
           # PVC so Gitea's sqlite DB survives pod restarts — needed to see
           # passwordMode:keepUpdated sync the password of an *existing* admin
