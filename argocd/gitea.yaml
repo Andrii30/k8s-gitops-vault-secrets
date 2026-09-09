@@ -23,7 +23,11 @@ spec:
             database:
               DB_TYPE: sqlite3
         persistence:
-          enabled: false
+          # PVC so Gitea's sqlite DB survives pod restarts — needed to see
+          # passwordMode:keepUpdated sync the password of an *existing* admin
+          # after a Vault rotation (without a PVC every restart is a fresh DB).
+          enabled: true
+          size: 2Gi
         postgresql:
           enabled: false
         postgresql-ha:
