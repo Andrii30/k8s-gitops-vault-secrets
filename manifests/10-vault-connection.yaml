@@ -1,0 +1,8 @@
+# Where VSO reaches Vault. In-cluster service DNS of the vault-0 pod.
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultConnection
+metadata:
+  name: vault
+  namespace: gitops-vault-secrets
+spec:
+  address: http://vault.vault.svc.cluster.local:8200
