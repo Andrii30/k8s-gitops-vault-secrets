@@ -1,0 +1,44 @@
+# Gitea whose admin password comes from the VSO-synced Secret "gitea-admin",
+# which VSO fills from Vault (secret/gitea/admin). Nothing secret in git.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gitea-vault
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://dl.gitea.com/charts/
+    chart: gitea
+    targetRevision: "10.4.1"
+    helm:
+      valuesObject:
+        gitea:
+          admin:
+            existingSecret: gitea-admin
+            # re-sync the admin password on every start, so rotating the
+            # value in Vault propagates through to Gitea.
+            passwordMode: keepUpdated
+          config:
+            database:
+              DB_TYPE: sqlite3
+        persistence:
+          enabled: false
+        postgresql:
+          enabled: false
+        postgresql-ha:
+          enabled: false
+        redis-cluster:
+          enabled: false
+        resources:
+          requests: { cpu: 50m, memory: 128Mi }
+          limits: { cpu: 500m, memory: 512Mi }
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gitops-vault-secrets
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
