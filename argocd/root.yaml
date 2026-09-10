@@ -1,0 +1,23 @@
+# App-of-apps root: watches this repo's argocd/ dir so every Application
+# manifest here is adopted and kept in sync automatically. Bootstrap once
+# with: kubectl apply -f argocd/root.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k8s-gitops-vault-secrets-root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Andrii30/k8s-gitops-vault-secrets.git
+    targetRevision: main
+    path: argocd
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
