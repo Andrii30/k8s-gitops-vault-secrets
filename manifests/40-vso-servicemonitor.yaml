@@ -1,0 +1,38 @@
+---
+# Lets Prometheus scrape the VSO controller-manager metrics endpoint.
+# Endpoint is behind kube-rbac-proxy (bearer-token auth). The VSO Helm chart
+# already ships the ClusterRole (vault-secrets-operator-metrics-reader) but
+# doesn't bind it to anyone — bind it to the Prometheus ServiceAccount here.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-secrets-operator-metrics-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vault-secrets-operator-metrics-reader
+subjects:
+  - kind: ServiceAccount
+    name: kube-prometheus-stack-prometheus
+    namespace: observability
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vault-secrets-operator
+  namespace: vault-secrets-operator
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames: ["vault-secrets-operator"]
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vault-secrets-operator
+      control-plane: controller-manager
+  endpoints:
+    - port: https
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
