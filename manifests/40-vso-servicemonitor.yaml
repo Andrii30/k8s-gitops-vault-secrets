@@ -23,6 +23,13 @@ metadata:
   namespace: vault-secrets-operator
   labels:
     release: kube-prometheus-stack
+  annotations:
+    # The Service this selects (vault-secrets-operator-metrics-service) is
+    # rendered by the vault-secrets-operator Application's Helm chart, not
+    # vendored in this repo, so kube-linter can't see it and flags a false
+    # positive "dangling" ServiceMonitor. Verified live: target is up and
+    # scraping (see PR description).
+    ignore-check.kube-linter.io/dangling-servicemonitor: "Service comes from the vault-secrets-operator Helm chart, deployed as a separate Application"
 spec:
   namespaceSelector:
     matchNames: ["vault-secrets-operator"]
