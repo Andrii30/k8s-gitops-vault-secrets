@@ -7,15 +7,9 @@ Secret; Gitea consumes it via `existingSecret`. Only pointers live in git.
 ## Flow
 
 ```
- Vault (dev mode)                 Kubernetes                      Gitea
-┌──────────────────┐   reads   ┌───────────────────┐   mounts   ┌─────────┐
-│ secret/gitea/admin│ ───────► │ VaultStaticSecret  │           │         │
-│ (kv-v2, in-memory) │          │        │           │           │  Gitea  │
-└──────────────────┘          │        ▼           │           │  Pod    │
-                               │ k8s Secret         │ ───────►  │         │
-                               │ gitea-admin         │ existingSecret
-                               │ (refreshed ~30s)    │           └─────────┘
-                               └───────────────────┘
+ Vault (dev mode)          VaultStaticSecret          k8s Secret          Gitea Pod
+ secret/gitea/admin  ---->  (VSO controller)   ---->  gitea-admin  ---->  existingSecret
+ (kv-v2, in-memory)         reads every ~30s          (refreshAfter: 30s)  mount
 ```
 
 VSO authenticates to Vault via Kubernetes auth (`VaultAuth` → ServiceAccount
